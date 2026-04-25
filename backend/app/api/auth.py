@@ -31,7 +31,11 @@ def register():
     if role_value not in {r.value for r in RoleType}:
         return jsonify({"error": "invalid role"}), 400
 
-    if User.query.filter_by(email=payload["email"]).first():
+    organization_id = payload.get("organization_id")
+    if role_value in {RoleType.CHARITY_ADMIN.value, RoleType.GOVERNMENT_ADMIN.value} and not organization_id:
+        return jsonify({"error": "organization_id is required for admin roles"}), 400
+
+    if User.query.filter_by(email=payload["email"].strip().lower()).first():
         return jsonify({"error": "email already exists"}), 409
 
     national_id_hash = hash_national_id(payload["national_id"])
@@ -47,7 +51,6 @@ def register():
     db.session.add(user)
     db.session.flush()
 
-    organization_id = payload.get("organization_id")
     role = UserRole(user_id=user.id, role=RoleType(role_value), organization_id=organization_id)
     db.session.add(role)
 

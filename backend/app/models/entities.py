@@ -137,8 +137,20 @@ class Donation(db.Model):
     donor_user_id = db.Column(db.BigInteger, db.ForeignKey("users.id"), nullable=False)
     case_id = db.Column(db.BigInteger, db.ForeignKey("cases.id"), nullable=False)
     amount = db.Column(db.Numeric(12, 2), nullable=False)
-    payment_status = db.Column(db.String(30), nullable=False, default="succeeded")
+    payment_status = db.Column(db.String(30), nullable=False, default="pending")
     is_anonymous = db.Column(db.Boolean, nullable=False, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+
+class PaymentTransaction(db.Model):
+    __tablename__ = "payment_transactions"
+
+    id = db.Column(db.BigInteger, primary_key=True)
+    donation_id = db.Column(db.BigInteger, db.ForeignKey("donations.id"), nullable=False, unique=True)
+    provider = db.Column(db.String(40), nullable=False, default="internal_sim")
+    provider_ref = db.Column(db.String(120), nullable=False, unique=True)
+    status = db.Column(db.String(30), nullable=False, default="initiated")
+    metadata_json = db.Column(db.JSON, nullable=False, default=dict)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
 

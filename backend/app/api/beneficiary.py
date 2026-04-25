@@ -13,6 +13,7 @@ from app.services.rbac import require_roles
 
 bp = Blueprint("beneficiary", __name__, url_prefix="/beneficiary")
 ALLOWED_EXTENSIONS = {"pdf", "png", "jpg", "jpeg"}
+ALLOWED_MIME_TYPES = {"application/pdf", "image/png", "image/jpeg"}
 MAX_FILE_SIZE = 10 * 1024 * 1024
 
 
@@ -86,16 +87,22 @@ def upload_document():
     if ext not in ALLOWED_EXTENSIONS:
         return jsonify({"error": "unsupported file format"}), 400
 
+    if file.mimetype not in ALLOWED_MIME_TYPES:
+        return jsonify({"error": "unsupported mime type"}), 400
+
     file.stream.seek(0, os.SEEK_END)
     size = file.stream.tell()
     file.stream.seek(0)
     if size > MAX_FILE_SIZE:
         return jsonify({"error": "file too large"}), 400
 
+    beneficiary_profile = _get_beneficiary_profile(user_id)
     if case_id:
         case = db.session.get(Case, int(case_id))
         if not case:
             return jsonify({"error": "case not found"}), 404
+        if not beneficiary_profile or case.beneficiary_id != beneficiary_profile.id:
+            return jsonify({"error": "forbidden for case ownership"}), 403
 
     os.makedirs(current_app.config["UPLOAD_DIR"], exist_ok=True)
     unique_name = f"{uuid.uuid4()}_{filename}"
@@ -136,5 +143,29 @@ def view_status():
                 "amount_funded": float(c.amount_funded),
             }
             for c in cases
+        ]
+    )
+
+
+@bp.get("/cases/<int:case_id>/history")
+@jwt_required()
+@require_roles("beneficiary")
+def case_history(case_id: int):
+    user_id = int(get_jwt_identity())
+    profile = _get_beneficiary_profile(user_id)
+    case = db.session.get(Case, case_id)
+    if not profile or not case or case.beneficiary_id != profile.id:
+        return jsonify({"error": "not found"}), 404
+
+    history = CaseStatusHistory.query.filter_by(case_id=case_id).order_by(CaseStatusHistory.changed_at.asc()).all()
+    return jsonify(
+        [
+            {
+                "from_status": h.from_status.value if h.from_status else None,
+                "to_status": h.to_status.value,
+                "reason": h.reason,
+                "changed_at": h.changed_at.isoformat(),
+            }
+            for h in history
         ]
     )

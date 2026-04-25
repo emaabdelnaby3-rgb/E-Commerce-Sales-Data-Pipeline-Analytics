@@ -7,12 +7,12 @@
 - Role-specific dashboards map to filtered analytics endpoints.
 
 ## 2. Entity model
-- Users, roles, organizations, beneficiary profiles, cases, case status history, donations, reviews, documents, logs, identity records.
+- Users, roles, organizations, beneficiary profiles, cases, case status history, donations, payment transactions, reviews, documents, logs, identity records.
 
 ## 3. Backend modules
 - `app/api/auth.py`: register/login/refresh/JWT.
-- `app/api/beneficiary.py`: submit request, upload docs, status.
-- `app/api/donor.py`: browse cases, donate, donation history.
+- `app/api/beneficiary.py`: submit request, upload docs, status, case history.
+- `app/api/donor.py`: browse cases, donate(initiate), donation confirm, donation history.
 - `app/api/admin.py`: case review, beneficiary management, stats.
 - `app/api/government.py`: cross-org oversight.
 - `app/api/analytics.py`: KPI and trends endpoints.
@@ -40,3 +40,4 @@
 - Encrypted national ID + hash-based duplicate prevention.
 - Organization-scoped records for tenant isolation.
 - Audit logging and case status history for traceability.
+- Document ownership + mime validation and paginated listing APIs.

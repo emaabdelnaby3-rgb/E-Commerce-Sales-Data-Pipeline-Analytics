@@ -9,10 +9,12 @@ This folder contains API contracts and visualization mappings for the UI screens
 - Session Renewal -> `POST /auth/refresh`
 - Beneficiary Request Form -> `POST /beneficiary/requests`
 - Document Upload Page -> `POST /beneficiary/documents/upload`
-- Donation Cases Listing -> `GET /donor/cases`
-- Donation Page -> `POST /donor/donate`
+- Beneficiary Case Timeline -> `GET /beneficiary/cases/{id}/history`
+- Donation Cases Listing -> `GET /donor/cases?page=1&page_size=20`
+- Donation Page (initiate) -> `POST /donor/donate`
+- Donation Page (confirm) -> `POST /donor/donations/{id}/confirm`
 - Beneficiary Dashboard -> `GET /beneficiary/status`
-- Donor Dashboard -> `GET /donor/donations`
+- Donor Dashboard -> `GET /donor/donations?page=1&page_size=20`
 - Charity Admin Dashboard -> `GET /admin/stats`
 - Government Admin Dashboard -> `GET /government/analytics/system`
 - Case Review Page -> `POST /admin/cases/{id}/review`
@@ -24,3 +26,4 @@ This folder contains API contracts and visualization mappings for the UI screens
 - Line chart: donation trends by month (`/analytics/donation-trends`).
 - Pie chart: case status breakdown (`/analytics/case-breakdown`).
 - Government table: organization performance (`/government/organizations/overview`).
+- Beneficiary case timeline: status transition history (`/beneficiary/cases/{id}/history`).

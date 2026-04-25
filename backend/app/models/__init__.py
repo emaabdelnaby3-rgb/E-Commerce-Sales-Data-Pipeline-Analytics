@@ -9,6 +9,7 @@ from app.models.entities import (
     Donation,
     IdentityRecord,
     Organization,
+    PaymentTransaction,
     RoleType,
     User,
     UserRole,
@@ -26,6 +27,7 @@ __all__ = [
     "CaseReview",
     "Document",
     "Donation",
+    "PaymentTransaction",
     "IdentityRecord",
     "AuditLog",
 ]

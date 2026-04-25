@@ -99,6 +99,17 @@ CREATE TABLE donations (
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+
+CREATE TABLE payment_transactions (
+    id BIGSERIAL PRIMARY KEY,
+    donation_id BIGINT NOT NULL UNIQUE REFERENCES donations(id) ON DELETE CASCADE,
+    provider VARCHAR(40) NOT NULL,
+    provider_ref VARCHAR(120) NOT NULL UNIQUE,
+    status VARCHAR(30) NOT NULL,
+    metadata_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE audit_logs (
     id BIGSERIAL PRIMARY KEY,
     actor_user_id BIGINT REFERENCES users(id),
@@ -113,4 +124,5 @@ CREATE INDEX idx_cases_status ON cases(status);
 CREATE INDEX idx_cases_org ON cases(organization_id);
 CREATE INDEX idx_case_status_history_case ON case_status_history(case_id);
 CREATE INDEX idx_donations_case ON donations(case_id);
+CREATE INDEX idx_payment_tx_donation ON payment_transactions(donation_id);
 CREATE INDEX idx_identity_hash ON identity_records(national_id_hash);

@@ -33,9 +33,11 @@ Backend health check: `GET http://localhost:5000/health`
 - Tenant-aware organization filtering in admin analytics endpoints
 - National ID SHA-256 hash (dedupe) + AES-GCM encryption (confidentiality)
 - Audit log records and case status history for traceability
+- Beneficiary document ownership checks and mime/type validation
 
 ## Business workflows
 
 - Case lifecycle: pending -> approved/rejected/needs_info -> funded -> closed
-- Donation distribution: each successful donation increments `amount_funded`; case becomes funded at target
+- Donation flow: initiate payment (`pending`) -> confirm payment (`succeeded`) -> distribute to case
 - Admin review workflow with decision + notes tracking and explicit status history entries
+- Donor/Case listings support pagination for production-scale UI grids

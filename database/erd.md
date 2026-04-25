@@ -14,6 +14,7 @@
 - cases (1) --- (N) documents
 - users (1) --- (N) donations (donor_user_id)
 - cases (1) --- (N) donations
+- donations (1) --- (1) payment_transactions
 - users (1) --- (N) audit_logs
 
 ## Warehouse star schema mapping
