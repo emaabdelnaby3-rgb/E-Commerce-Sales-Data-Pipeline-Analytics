@@ -19,11 +19,22 @@ Production-oriented reference implementation covering:
 ## Quick start
 
 ```bash
-cd /workspace/TRY
+cp .env.example .env
 docker compose up --build
 ```
 
-Backend health check: `GET http://localhost:5000/health`
+Backend probes:
+- `GET http://localhost:5000/health`
+- `GET http://localhost:5000/health/ready`
+
+## Useful commands
+
+```bash
+make up
+make down
+make backend-compile
+make backend-test
+```
 
 ## Security controls implemented
 

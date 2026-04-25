@@ -41,3 +41,8 @@
 - Organization-scoped records for tenant isolation.
 - Audit logging and case status history for traceability.
 - Document ownership + mime validation and paginated listing APIs.
+
+
+## 8. Operational reliability
+- Health endpoint (`/health`) and readiness endpoint (`/health/ready`) for orchestration checks.
+- Centralized JSON error handlers for consistent API responses.
