@@ -1,8 +1,14 @@
 from flask import Blueprint, current_app, jsonify, request
-from flask_jwt_extended import create_access_token, create_refresh_token
+from flask_jwt_extended import (
+    create_access_token,
+    create_refresh_token,
+    get_jwt_identity,
+    jwt_required,
+)
 
 from app.extensions import bcrypt, db
 from app.models import BeneficiaryProfile, IdentityRecord, RoleType, User, UserRole
+from app.services.audit import write_audit_log
 from app.services.identity import (
     build_mpid,
     encrypt_national_id,
@@ -33,15 +39,16 @@ def register():
         return jsonify({"error": "duplicate beneficiary identity detected"}), 409
 
     user = User(
-        email=payload["email"],
+        email=payload["email"].strip().lower(),
         password_hash=bcrypt.generate_password_hash(payload["password"]).decode("utf-8"),
-        full_name=payload["full_name"],
-        phone=payload["phone"],
+        full_name=payload["full_name"].strip(),
+        phone=payload["phone"].strip(),
     )
     db.session.add(user)
     db.session.flush()
 
-    role = UserRole(user_id=user.id, role=RoleType(role_value), organization_id=payload.get("organization_id"))
+    organization_id = payload.get("organization_id")
+    role = UserRole(user_id=user.id, role=RoleType(role_value), organization_id=organization_id)
     db.session.add(role)
 
     identity = IdentityRecord(
@@ -66,6 +73,7 @@ def register():
         )
         db.session.add(profile)
 
+    write_audit_log(user.id, "register", "user", user.id, {"role": role_value, "organization_id": organization_id})
     db.session.commit()
     return jsonify({"message": "registered", "user_id": user.id}), 201
 
@@ -73,12 +81,29 @@ def register():
 @bp.post("/login")
 def login():
     payload = request.get_json() or {}
-    user = User.query.filter_by(email=payload.get("email")).first()
+    user = User.query.filter_by(email=payload.get("email", "").strip().lower()).first()
     if not user or not bcrypt.check_password_hash(user.password_hash, payload.get("password", "")):
         return jsonify({"error": "invalid credentials"}), 401
 
     roles = [r.role.value for r in user.roles]
-    claims = {"roles": roles}
+    organization_ids = [r.organization_id for r in user.roles if r.organization_id is not None]
+    claims = {"roles": roles, "organization_ids": organization_ids}
     access = create_access_token(identity=str(user.id), additional_claims=claims)
     refresh = create_refresh_token(identity=str(user.id), additional_claims=claims)
+    write_audit_log(user.id, "login", "user", user.id, {"roles": roles})
+    db.session.commit()
     return jsonify({"access_token": access, "refresh_token": refresh, "roles": roles})
+
+
+@bp.post("/refresh")
+@jwt_required(refresh=True)
+def refresh_access():
+    user_id = int(get_jwt_identity())
+    user = db.session.get(User, user_id)
+    if not user:
+        return jsonify({"error": "invalid token user"}), 404
+
+    roles = [r.role.value for r in user.roles]
+    organization_ids = [r.organization_id for r in user.roles if r.organization_id is not None]
+    access = create_access_token(identity=str(user.id), additional_claims={"roles": roles, "organization_ids": organization_ids})
+    return jsonify({"access_token": access})

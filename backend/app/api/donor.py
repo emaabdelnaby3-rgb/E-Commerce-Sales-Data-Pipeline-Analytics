@@ -1,10 +1,11 @@
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 
 from app.extensions import db
-from app.models import Case, CaseStatus, Donation
+from app.models import Case, CaseStatus, CaseStatusHistory, Donation
+from app.services.audit import write_audit_log
 from app.services.rbac import require_roles
 
 bp = Blueprint("donor", __name__, url_prefix="/donor")
@@ -14,8 +15,13 @@ bp = Blueprint("donor", __name__, url_prefix="/donor")
 @jwt_required()
 @require_roles("donor", "charity_admin", "government_admin")
 def list_cases():
-    status = request.args.get("status", CaseStatus.APPROVED.value)
-    query = Case.query.filter(Case.status == CaseStatus(status))
+    status_value = request.args.get("status", CaseStatus.APPROVED.value)
+    try:
+        status = CaseStatus(status_value)
+    except ValueError:
+        return jsonify({"error": "invalid status filter"}), 400
+
+    query = Case.query.filter(Case.status == status)
 
     category = request.args.get("category")
     if category:
@@ -48,14 +54,22 @@ def donate():
     payload = request.get_json() or {}
     case_id = payload.get("case_id")
     amount = payload.get("amount")
-    if not case_id or not amount:
+    if not case_id or amount is None:
         return jsonify({"error": "case_id and amount are required"}), 400
 
-    case = Case.query.get(case_id)
+    case = db.session.get(Case, case_id)
     if not case or case.status not in {CaseStatus.APPROVED, CaseStatus.FUNDED}:
         return jsonify({"error": "case unavailable for donations"}), 400
 
-    amount_decimal = Decimal(str(amount))
+    try:
+        amount_decimal = Decimal(str(amount))
+    except InvalidOperation:
+        return jsonify({"error": "amount must be numeric"}), 400
+
+    if amount_decimal <= 0:
+        return jsonify({"error": "amount must be positive"}), 400
+
+    previous_status = case.status
     donation = Donation(
         donor_user_id=int(get_jwt_identity()),
         case_id=case.id,
@@ -68,6 +82,20 @@ def donate():
         case.status = CaseStatus.FUNDED
 
     db.session.add(donation)
+    db.session.flush()
+
+    if case.status != previous_status:
+        db.session.add(
+            CaseStatusHistory(
+                case_id=case.id,
+                from_status=previous_status,
+                to_status=case.status,
+                changed_by_user_id=int(get_jwt_identity()),
+                reason="donation target reached",
+            )
+        )
+
+    write_audit_log(int(get_jwt_identity()), "donation_created", "donation", donation.id, {"amount": str(amount_decimal)})
     db.session.commit()
     return jsonify({"donation_id": donation.id, "case_status": case.status.value}), 201
 

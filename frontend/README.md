@@ -6,6 +6,7 @@ This folder contains API contracts and visualization mappings for the UI screens
 
 - Login Page -> `POST /auth/login`
 - Registration Page -> `POST /auth/register`
+- Session Renewal -> `POST /auth/refresh`
 - Beneficiary Request Form -> `POST /beneficiary/requests`
 - Document Upload Page -> `POST /beneficiary/documents/upload`
 - Donation Cases Listing -> `GET /donor/cases`

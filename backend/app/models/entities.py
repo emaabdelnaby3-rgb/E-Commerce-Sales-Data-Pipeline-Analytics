@@ -24,6 +24,7 @@ class CaseStatus(str, enum.Enum):
 
 class User(db.Model):
     __tablename__ = "users"
+
     id = db.Column(db.BigInteger, primary_key=True)
     email = db.Column(db.String(255), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
@@ -37,6 +38,7 @@ class User(db.Model):
 
 class Organization(db.Model):
     __tablename__ = "organizations"
+
     id = db.Column(db.BigInteger, primary_key=True)
     name = db.Column(db.String(255), nullable=False, unique=True)
     org_type = db.Column(db.String(50), nullable=False)  # charity | government
@@ -46,6 +48,8 @@ class Organization(db.Model):
 
 class UserRole(db.Model):
     __tablename__ = "user_roles"
+    __table_args__ = (db.UniqueConstraint("user_id", "role", "organization_id", name="uq_user_role_org"),)
+
     id = db.Column(db.BigInteger, primary_key=True)
     user_id = db.Column(db.BigInteger, db.ForeignKey("users.id"), nullable=False)
     role = db.Column(db.Enum(RoleType), nullable=False)
@@ -57,6 +61,7 @@ class UserRole(db.Model):
 
 class IdentityRecord(db.Model):
     __tablename__ = "identity_records"
+
     id = db.Column(db.BigInteger, primary_key=True)
     user_id = db.Column(db.BigInteger, db.ForeignKey("users.id"), nullable=False)
     mpid = db.Column(db.String(64), nullable=False, unique=True)
@@ -67,6 +72,7 @@ class IdentityRecord(db.Model):
 
 class BeneficiaryProfile(db.Model):
     __tablename__ = "beneficiary_profiles"
+
     id = db.Column(db.BigInteger, primary_key=True)
     user_id = db.Column(db.BigInteger, db.ForeignKey("users.id"), nullable=False, unique=True)
     household_size = db.Column(db.Integer, nullable=True)
@@ -76,6 +82,7 @@ class BeneficiaryProfile(db.Model):
 
 class Case(db.Model):
     __tablename__ = "cases"
+
     id = db.Column(db.BigInteger, primary_key=True)
     beneficiary_id = db.Column(db.BigInteger, db.ForeignKey("beneficiary_profiles.id"), nullable=False)
     organization_id = db.Column(db.BigInteger, db.ForeignKey("organizations.id"), nullable=False)
@@ -88,8 +95,21 @@ class Case(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
 
 
+class CaseStatusHistory(db.Model):
+    __tablename__ = "case_status_history"
+
+    id = db.Column(db.BigInteger, primary_key=True)
+    case_id = db.Column(db.BigInteger, db.ForeignKey("cases.id"), nullable=False)
+    from_status = db.Column(db.Enum(CaseStatus), nullable=True)
+    to_status = db.Column(db.Enum(CaseStatus), nullable=False)
+    changed_by_user_id = db.Column(db.BigInteger, db.ForeignKey("users.id"), nullable=True)
+    reason = db.Column(db.Text, nullable=True)
+    changed_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+
 class CaseReview(db.Model):
     __tablename__ = "case_reviews"
+
     id = db.Column(db.BigInteger, primary_key=True)
     case_id = db.Column(db.BigInteger, db.ForeignKey("cases.id"), nullable=False)
     reviewer_user_id = db.Column(db.BigInteger, db.ForeignKey("users.id"), nullable=False)
@@ -100,6 +120,7 @@ class CaseReview(db.Model):
 
 class Document(db.Model):
     __tablename__ = "documents"
+
     id = db.Column(db.BigInteger, primary_key=True)
     user_id = db.Column(db.BigInteger, db.ForeignKey("users.id"), nullable=False)
     case_id = db.Column(db.BigInteger, db.ForeignKey("cases.id"), nullable=True)
@@ -111,6 +132,7 @@ class Document(db.Model):
 
 class Donation(db.Model):
     __tablename__ = "donations"
+
     id = db.Column(db.BigInteger, primary_key=True)
     donor_user_id = db.Column(db.BigInteger, db.ForeignKey("users.id"), nullable=False)
     case_id = db.Column(db.BigInteger, db.ForeignKey("cases.id"), nullable=False)
@@ -122,6 +144,7 @@ class Donation(db.Model):
 
 class AuditLog(db.Model):
     __tablename__ = "audit_logs"
+
     id = db.Column(db.BigInteger, primary_key=True)
     actor_user_id = db.Column(db.BigInteger, db.ForeignKey("users.id"), nullable=True)
     action = db.Column(db.String(80), nullable=False)

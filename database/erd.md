@@ -8,6 +8,8 @@
 - organizations (1) --- (N) cases
 - cases (1) --- (N) case_reviews
 - users (1) --- (N) case_reviews (reviewer)
+- cases (1) --- (N) case_status_history
+- users (1) --- (N) case_status_history (changed_by)
 - users (1) --- (N) documents
 - cases (1) --- (N) documents
 - users (1) --- (N) donations (donor_user_id)

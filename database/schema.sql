@@ -54,10 +54,20 @@ CREATE TABLE cases (
     category VARCHAR(80) NOT NULL,
     title VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
-    amount_requested NUMERIC(12,2) NOT NULL,
-    amount_funded NUMERIC(12,2) NOT NULL DEFAULT 0,
+    amount_requested NUMERIC(12,2) NOT NULL CHECK (amount_requested > 0),
+    amount_funded NUMERIC(12,2) NOT NULL DEFAULT 0 CHECK (amount_funded >= 0),
     status case_status NOT NULL DEFAULT 'pending',
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE case_status_history (
+    id BIGSERIAL PRIMARY KEY,
+    case_id BIGINT NOT NULL REFERENCES cases(id) ON DELETE CASCADE,
+    from_status case_status,
+    to_status case_status NOT NULL,
+    changed_by_user_id BIGINT REFERENCES users(id),
+    reason TEXT,
+    changed_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE case_reviews (
@@ -83,7 +93,7 @@ CREATE TABLE donations (
     id BIGSERIAL PRIMARY KEY,
     donor_user_id BIGINT NOT NULL REFERENCES users(id),
     case_id BIGINT NOT NULL REFERENCES cases(id),
-    amount NUMERIC(12,2) NOT NULL,
+    amount NUMERIC(12,2) NOT NULL CHECK (amount > 0),
     payment_status VARCHAR(30) NOT NULL,
     is_anonymous BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
@@ -101,5 +111,6 @@ CREATE TABLE audit_logs (
 
 CREATE INDEX idx_cases_status ON cases(status);
 CREATE INDEX idx_cases_org ON cases(organization_id);
+CREATE INDEX idx_case_status_history_case ON case_status_history(case_id);
 CREATE INDEX idx_donations_case ON donations(case_id);
 CREATE INDEX idx_identity_hash ON identity_records(national_id_hash);

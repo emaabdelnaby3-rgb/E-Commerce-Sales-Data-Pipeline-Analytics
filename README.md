@@ -1,7 +1,7 @@
 # Unified Charity Integration Platform
 
 Production-oriented reference implementation covering:
-- Flask backend APIs with JWT + RBAC
+- Flask backend APIs with JWT + RBAC + tenant scoping
 - PostgreSQL OLTP schema
 - Identity resolution (MPID + golden record)
 - Kafka + Spark data pipeline skeleton
@@ -30,11 +30,12 @@ Backend health check: `GET http://localhost:5000/health`
 - Password hashing using bcrypt
 - JWT access + refresh token authentication
 - Role-based access control decorators
+- Tenant-aware organization filtering in admin analytics endpoints
 - National ID SHA-256 hash (dedupe) + AES-GCM encryption (confidentiality)
-- Tenant-aware organization field for data isolation
+- Audit log records and case status history for traceability
 
 ## Business workflows
 
 - Case lifecycle: pending -> approved/rejected/needs_info -> funded -> closed
 - Donation distribution: each successful donation increments `amount_funded`; case becomes funded at target
-- Admin review workflow with decision + notes tracking
+- Admin review workflow with decision + notes tracking and explicit status history entries

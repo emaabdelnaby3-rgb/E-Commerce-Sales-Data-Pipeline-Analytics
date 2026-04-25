@@ -11,7 +11,7 @@ bp = Blueprint("government", __name__, url_prefix="/government")
 
 @bp.get("/organizations/overview")
 @jwt_required()
-@require_roles("government_admin")
+@require_roles("government_admin", "platform_admin")
 def organization_overview():
     rows = (
         db.session.query(
@@ -41,7 +41,7 @@ def organization_overview():
 
 @bp.get("/analytics/system")
 @jwt_required()
-@require_roles("government_admin")
+@require_roles("government_admin", "platform_admin")
 def system_analytics():
     total_orgs = db.session.query(func.count(Organization.id)).scalar() or 0
     total_cases = db.session.query(func.count(Case.id)).scalar() or 0
