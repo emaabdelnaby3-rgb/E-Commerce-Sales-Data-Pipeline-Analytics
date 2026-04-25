@@ -1,0 +1,64 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: charity_backend
+    environment:
+      DATABASE_URL: postgresql://charity:charity@db:5432/charity_platform
+      JWT_SECRET_KEY: super-secret-change-in-prod
+      NATIONAL_ID_KEY: 0123456789abcdef0123456789abcdef
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - ./backend:/app
+      - uploads:/app/uploads
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+      - kafka
+
+  db:
+    image: postgres:16
+    container_name: charity_db
+    environment:
+      POSTGRES_DB: charity_platform
+      POSTGRES_USER: charity
+      POSTGRES_PASSWORD: charity
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: charity_zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: charity_kafka
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+
+  spark:
+    image: bitnami/spark:3.5
+    container_name: charity_spark
+    environment:
+      SPARK_MODE: master
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:
+  uploads:
