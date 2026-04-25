@@ -13,7 +13,7 @@ Production-oriented reference implementation covering:
 - `backend/` Flask API implementation
 - `database/` transactional schema and ERD notes
 - `data_pipeline/` Kafka producer, Spark stream job, warehouse SQL
-- `frontend/` UI-to-API mapping for dashboards and pages
+- `frontend/` React + Vite implementation of all UI screens (with API integration)
 - `docker-compose.yml` end-to-end local stack
 
 ## Quick start

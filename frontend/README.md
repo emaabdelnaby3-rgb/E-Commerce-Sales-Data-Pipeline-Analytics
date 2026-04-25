@@ -1,8 +1,31 @@
-# Frontend Integration Contract
+# Frontend (React + Vite)
 
-This folder contains API contracts and visualization mappings for the UI screens.
+This frontend implements all UI screens requested:
 
-## Screen -> API Mapping
+- Login Page
+- Registration Page (Beneficiary / Donor / Admin / Government)
+- Beneficiary Request Form
+- Document Upload Page
+- Donation Cases Listing Page
+- Donation Page
+- Beneficiary Dashboard
+- Donor Dashboard
+- Charity Admin Dashboard
+- Government Admin Dashboard
+- Case Review Page
+- Analytics Dashboard
+
+## Run
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Set backend URL with `VITE_API_BASE_URL` if needed.
+
+## API Mapping
 
 - Login Page -> `POST /auth/login`
 - Registration Page -> `POST /auth/register`
@@ -19,11 +42,3 @@ This folder contains API contracts and visualization mappings for the UI screens
 - Government Admin Dashboard -> `GET /government/analytics/system`
 - Case Review Page -> `POST /admin/cases/{id}/review`
 - Analytics Dashboard -> `GET /analytics/kpis`, `GET /analytics/donation-trends`
-
-## Visualization logic
-
-- KPI cards: total donations, beneficiaries count, case success rate (`/analytics/kpis`).
-- Line chart: donation trends by month (`/analytics/donation-trends`).
-- Pie chart: case status breakdown (`/analytics/case-breakdown`).
-- Government table: organization performance (`/government/organizations/overview`).
-- Beneficiary case timeline: status transition history (`/beneficiary/cases/{id}/history`).
