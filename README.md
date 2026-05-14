@@ -10,7 +10,7 @@ The goal of the project is to convert raw e-commerce data into structured, clean
 
 ## Architecture
 
-![E-Commerce Sales Data Pipeline Architecture](assets/e_commerce_sales_data_pipeline_architecture.png)
+![E-Commerce Sales Data Pipeline Architecture](e_commerce_sales_data_pipeline_architecture.png)
 
 ---
 
