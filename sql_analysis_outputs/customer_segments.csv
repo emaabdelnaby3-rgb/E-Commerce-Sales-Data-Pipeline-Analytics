@@ -1,0 +1,5 @@
+customer_segment,number_of_customers,total_segment_revenue,avg_customer_spending,avg_orders_per_customer
+Medium Value,45870,8873266.18,193.44,1.05
+Low Value,43340,2615992.15,60.36,1.01
+High Value,3116,2117411.34,679.53,1.13
+VIP,1145,1815792.1,1585.84,1.1
